@@ -43,6 +43,7 @@ def dict2csv(mydict):
         headerrow = ','.join(header)
         outcsv.write(headerrow + '\n')
         for key, value in mydict.items():
+            print(key)
             sid = key.split('_')
             pop = sid[0]
             gbs = sid[1]
@@ -51,10 +52,17 @@ def dict2csv(mydict):
             ref = sid[4]
 
             for innerkey,innervalue in value.items():
+                print(innerkey,innervalue)
                 if innerkey == 'samstat':
                     pass
                 else:
-                    breadth = innervalue['Breadth']
+                    # When a chrom has zero mapped reads
+                    # the chrom will not appear in the mosdepth
+                    # dist file and the value is thus set to 0.
+                    try:
+                        breadth = innervalue['Breadth']
+                    except:
+                        breadth = 0
                     bases = innervalue['Bases']
                     covbases = innervalue['Covered bases']
                     depth= innervalue['Mean depth covered bases']
@@ -289,9 +297,9 @@ def perbasestats(bedgz):
     for chrom in chrset:
         if chrom not in scaffdict:
             emptydic = {}
-            statsdict['Bases'] = 0
-            statsdict['Covered bases'] = 0
-            statsdict['Mean depth covered bases'] = 0
+            emptydic['Bases'] = 0
+            emptydic['Covered bases'] = 0
+            emptydic['Mean depth covered bases'] = 0
             scaffdict[chrom] = emptydic
     return scaffdict
 
@@ -349,9 +357,12 @@ def radloci(bedgz):
             locidic[scaff] = [scaffcnt, locpos]
         else:
             locidic[scaff] = [1,[locmid]]
+
     for key, value in locidic.items():
              # Append loci per chr to list
-             chrcnts.append(value[0])
+             # Ignore unplaced and scaff
+             if 'npla' not in key and 'scaff' not in key:
+                chrcnts.append(value[0])
              # Get chr len from dict
              chrlen = chrsize[key]
              # Calculate max bin size with chr len
@@ -368,11 +379,17 @@ def radloci(bedgz):
              lchrdic['Mean loci per 100kb'] = mhist
              lchrdic['StDev loci per 100kb'] =   sdhist
              locidic[key] = lchrdic
-    lchrdic = {}
-    lchrdic['Loci'] = locicnt
-    lchrdic['Mean loci per chr'] = round(statistics.mean(chrcnts),4)
-    lchrdic['StDev loci per chr'] = round(statistics.stdev(chrcnts),4)
-    locidic['total'] = lchrdic
+    try:
+        lchrdic = {}
+        lchrdic['Loci'] = locicnt
+        lchrdic['Mean loci per chr'] = round(statistics.mean(chrcnts),4)
+        lchrdic['StDev loci per chr'] = round(statistics.stdev(chrcnts),4)
+        locidic['total'] = lchrdic
+    except:
+        lchrdic['Loci'] = 'NA'
+        lchrdic['Mean loci per chr'] = 'NA'
+        lchrdic['StDev loci per chr'] = 'NA'
+        locidic['total'] = lchrdic
 
     for chrom in chrset:
         if chrom not in locidic:
@@ -381,7 +398,7 @@ def radloci(bedgz):
             emptydic['Mean loci per 100kb'] = 0
             emptydic['StDev loci per 100kb'] = 0
             locidic[chrom] = emptydic
-
+    print(locidic)
     return locidic
 def covbreadth(intxt):
     '''Takes a mosdepth.dist.txt file as input
@@ -417,32 +434,31 @@ with open(inlist,'r') as f:
         line = line.strip()
         infile = line
         idlist = file2id(infile)
-        try:
+        #try:
             # Sample ID
-            sid = (idlist[2] + "_" + idlist[0] + "_" + idlist[1] +
-                   "_" + idlist[3] + "_" + idlist[4])
-            # Get type of statistics file
-            filetype = idlist[5]
-            # Extract stats from file as dict
-            if filetype == 'stats':
-                stats = getmstats(infile)
-                #print(sid, stats)
-            elif filetype == 'perbase':
-                meancov = perbasestats(infile)
-                locicnt = radloci(infile)
-                # Merge the nested dicts
-                stats = mergedict(meancov,locicnt)
-                #print(sid,allstats)
-            elif filetype == 'mosdepth':
-                stats = covbreadth(infile)
-                #print(sid,breadth)
+        sid = (idlist[2] + "_" + idlist[0] + "_" + idlist[1] +
+               "_" + idlist[3] + "_" + idlist[4])
+        # Get type of statistics file
+        filetype = idlist[5]
+        # Extract stats from file as dict
+        if filetype == 'stats':
+            stats = getmstats(infile)
+            #print(sid, stats)
+        elif filetype == 'perbase':
+            meancov = perbasestats(infile)
+            locicnt = radloci(infile)
+            # Merge the nested dicts
+            stats = mergedict(meancov,locicnt)
+            #print(sid,allstats)
+        elif filetype == 'mosdepth':
+            stats = covbreadth(infile)
 
-            if sid in maindic:
-                new_entry = mergedict(maindic[sid],stats)
-                maindic[sid] = new_entry
-            else:
-                maindic[sid] = stats
-        except:
-            print("Error!")
+        if sid in maindic:
+            new_entry = mergedict(maindic[sid],stats)
+            maindic[sid] = new_entry
+        else:
+            maindic[sid] = stats
+        #except:
+        #    print("Error!")
 
 dict2csv(maindic)
