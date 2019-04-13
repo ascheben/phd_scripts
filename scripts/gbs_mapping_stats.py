@@ -43,16 +43,15 @@ def dict2csv(mydict):
         headerrow = ','.join(header)
         outcsv.write(headerrow + '\n')
         for key, value in mydict.items():
-            print(key)
             sid = key.split('_')
-            pop = sid[0]
-            gbs = sid[1]
-            sample = sid[2]
+            sample = sid[0]
+            pop = sid[1]
+            gbs = sid[2]
             mapper = sid[3]
             ref = sid[4]
 
             for innerkey,innervalue in value.items():
-                print(innerkey,innervalue)
+                #print(innerkey,innervalue)
                 if innerkey == 'samstat':
                     pass
                 else:
@@ -398,7 +397,6 @@ def radloci(bedgz):
             emptydic['Mean loci per 100kb'] = 0
             emptydic['StDev loci per 100kb'] = 0
             locidic[chrom] = emptydic
-    print(locidic)
     return locidic
 def covbreadth(intxt):
     '''Takes a mosdepth.dist.txt file as input
