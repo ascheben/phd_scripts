@@ -268,32 +268,6 @@ ggplot(gc_res, aes(UncorrectedGenotype,Frequency, fill = ChangedTo )) + geom_bar
   guides(fill=guide_legend(title="Genotype after correction"))
 write.table(gc_res, file = "genotype_correction_frequencies.txt")
 
-# Calculate error rate
-# This method is based only on dxo and is not at all accurate for this data
-#loglik <- err <- c(0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10)
-#for(i in seq(along=err)) {
-#  cat(i, "of", length(err), "\n")
-#  tempmap <- est.map(filtcross, chr = "8", error.prob=err[i])
-#  loglik[i] <- sum(sapply(tempmap, attr, "loglik"))
-#}
-#lod <- (loglik - max(loglik))/log(10)
-# Plot likelihood of error rates
-#plot(err, lod, xlab="Genotyping error rate", xlim=c(0.01,0.11), 
-#     ylab=expression(paste(log[10], " likelihood")))
-
-# Alternatively to Genotype-Corrector, suspect genotypes could be deleted 
-# However cleancross is developed for two genotype (AB) and only uses double crossovers to detect errors
-#mycrossmap18_chr_clean <- cleanGeno(mycrossmap18_chr, maxdist=5, maxmark=5, verbose=TRUE)
-# An alternative for correcting genotypes: https://cran.r-project.org/web/packages/ABHgenotypeR/vignettes/ABHgenotypeR-vignette.html
-
-# An imputation step could then be used to impute missing genotypes
-
-#impcross <- fill.geno(cross, method=c("imp","argmax", "no_dbl_XO", "maxmarginal"),
-#                      error.prob=0.03,
-#                      map.function=c("haldane","kosambi","c-f","morgan"),
-#                      min.prob=0.95)
-
-
 ############################################
 # Import genotypes and phenotypes as cross #
 ############################################
@@ -301,7 +275,7 @@ write.table(gc_res, file = "genotype_correction_frequencies.txt")
 #Cross, filtered for SNPs polymorphic between parents
 #Seg dist 0.01
 #less than 40% missing
-mycross <- read.cross("csvsr", "/media/armin/5350591537F3F39C/Projects/GBS_Empirical_Comparison/QTL/cross_objects/genocorr/ddrad_final/",
+mycross <- read.cross("csvsr", "/ddrad_final/",
                       "Pop3_ddrad_bwa_filt_parentalgeno_noUn.rqtl.gen.csv",
                       "Pop3_ddrad_bwa_filt_parentalgeno_noUn.rqtl.phe.csv",
                       genotypes=c("A","H","B"), 
@@ -315,8 +289,7 @@ mycross <- read.cross("csvsr", "/media/armin/5350591537F3F39C/Projects/GBS_Empir
 # Unplaced_v81 markers dropped
 # G-C qchet removed ~50% of markers
 # Corrected genotypes with G-C before linkage mapping (window 15, error rate 0.03 for both)
-#setwd("/media/armin/5350591537F3F39C/Projects/GBS_Empirical_Comparison/QTL/cross_objects/genocorr/ddrad_final/")
-corcross <-read.cross("csvsr", "/media/armin/5350591537F3F39C/Projects/GBS_Empirical_Comparison/QTL/cross_objects/genocorr/ddrad_final/",
+corcross <-read.cross("csvsr", "/ddrad_final/",
                       "Pop3_ddrad_bwa_filt_parentalgeno_noUn.qchet.win15.cor.csv.rqtl.gen.csv",
                       "Pop3_ddrad_bwa_filt_parentalgeno_noUn.qchet.win15.cor.csv.rqtl.phe.csv",
                       genotypes=c("A","H","B"), 
@@ -465,9 +438,6 @@ summary(mymapcor10_chr)
 plotMap(mymapcor10_chr)
 
 # Heatmaps
-#https://www.researchgate.net/publication/260809236_A_High-Resolution_Genetic_Map_of_Yellow_Monkeyflower_Identifies_Chemical_Defense_QTLs_and_Recombination_Rate_Variation/figures?lo=1
-#https://www.mdpi.com/1422-0067/19/10/3268/pdf
-#Example figure also in https://www.researchgate.net/publication/284433879_Genetic_dissection_of_maize_seedling_root_system_architecture_traits_using_an_ultra-high_density_bin-map_and_a_recombinant_inbred_line_population/figures?lo=1
 # Heatmap of recombination fraction for chromosomes A1 and A2      
 #This takes a long time for all markers
 chroms <- names(mymapcor10_chr$geno)
@@ -478,7 +448,6 @@ for (i in chroms) {
   heatMap(mymapcor10_chr, chr = c(i),lmax = 50)
   dev.off()
 }
-
 
 
 png("myhmap1_plots_300dpi_cex01.png",width = 4, height = 4, units = 'in', res = 300)
@@ -700,7 +669,6 @@ for (i in chroms) {
 # Reverse order of markers on chr based on physical order
 # Data marker order and map order were not consistent anymore on A03
 
-
 # Manually check whether marker order needs to be flipped based on marker names containing physical positions
 mymapcor10_chr$geno$C02$map
 
@@ -716,37 +684,6 @@ for (i in chroms) {
   heatMap(mymapcor10_chr_cor, chr = c(i),lmax = 50)
   dev.off()
 }
-
-
-##########################
-#Drop one marker analysis#
-##########################
-#setwd("/media/armin/5350591537F3F39C/Projects/GBS_Empirical_Comparison/QTL/dropone")
-# The below code was executed per chromosome on a HPC
-#load("mymap_cor_p29_chr.RData")
-#i <- c("A01")
-#chrdropname <- paste("dropone_",i,sep = "")
-#outfile <- paste(chrdropname,".txt",sep = "")
-#chrdropname <- droponemarker(tmpcross, chr = c("20"), error.prob=0.03,verbose = 2)
-#chrdropname <- as.data.frame(chrdropname)
-#write.table(chrdropname, file = outfile, row.names = TRUE, col.names = TRUE)
-
-dropall <- read.table("dropone_finalmap.txt", sep = "\t", header = TRUE)
-dropall_clean <- read.table("dropone_finalmap_exclude_chrC02_3326215.txt", sep = "\t", header = TRUE)
-#summary(dropall, lod.column=2)
-
-#par(mfrow=c(2,1))
-#plot(dropall, lod=1, ylim=c(-100,0))
-#plot(dropall, lod=2, ylab="Change in chromosome length")
-
-# Facet plots per chromosome of LOD and LDiff per marker
-ggplot(data=dropall_clean, aes(x=pos, y=LOD)) +
-  geom_line() + facet_wrap(~chr,scales = "free")
-ggplot(data=dropall_clean, aes(x=pos, y=Ldiff)) +
-  geom_line() + facet_wrap(~chr,scales = "free")
-
-# One marker on C02 with a large effect was identified: chrC02_3326215
-# However dropping the marker only decreased map size by about 1cM when tested with finalmap
 
 #####################################
 # Visualise genetic maps            #
@@ -1051,21 +988,10 @@ dev.off()
 result_np <- result_np[markernames(qtlmap),] 
 
 #Result Bud time QTL LOD interval
-#lodint(result_np, drop = 1, chr="C02")
-#chr      pos      lod
-#C02_4345729 C02 56.08395 2.956675
-#C02_4673904 C02 59.90748 4.351552
-#C02_5120506 C02 64.07432 3.006542
-
+#lodint(result_np, drop = 1.5, chr="C02")
 
 #Result Flowering time QTL LOD interval
-#lodint(result_np, drop = 1, chr="C02")
-#chr       pos      lod
-#C02_4345729  C02  56.08395 3.059523
-#C02_4651778  C02  59.90748 4.269422
-#C02_4655461  C02  59.90748 4.269422
-#C02_4657537  C02  59.90748 4.269422
-#C02_24916709 C02 102.67897 3.195665
+#lodint(result_np, drop = 1.5, chr="C02")
 
 # Summary of the significant loci
 summary(result_np, perms=operm.np, alpha=0.05, pvalues=TRUE)
@@ -1100,26 +1026,26 @@ write.csv(perm_hk, file = out_lod)
 # Marker effect sizes  #
 ########################
 # Plot Phenotype versus genotype at significant marker flowering
-pdf("qtlmap_C02_4655461_plotpxg_flower.pdf")
+pdf("qtlmap_plotpxg_flower.pdf")
 plotPXG(qtlmap,"C02_4655461", pheno.col = 7)
 dev.off()
 # Plot Phenotype versus genotype at significant marker bud
-pdf("qtlmap_C02_4673904_plotpxg_bud.pdf")
-plotPXG(qtlmap,"C02_4673904", pheno.col = 6)
+pdf("qtlmap_plotpxg_bud.pdf")
+plotPXG(qtlmap,"chr_5604", pheno.col = 6)
 dev.off()
 
 # The function fitqtl was used for calculating percentages of variance of the significant QTL 
 # by calculating the coefficient of determination for each single-QTL model obtained using scanone
 sug <- calc.genoprob(qtlmap, step=1)
 # Flowering time QTL effect
-sink('qtl_effect_flowering_qtlmap_step1_C02.txt')
-qtl <- makeqtl(sug, chr="C02", pos=59.90748, what="prob")
+sink('qtl_effect_flowering_qtlmap_step1.txt')
+qtl <- makeqtl(sug, chr="C02", pos=1, what="prob")
 out.fq <- fitqtl(sug, qtl=qtl, method="hk", pheno.col=7)
 summary(fitqtl(sug,  pheno.col=7, qtl=qtl, method="hk", get.ests=TRUE, dropone=FALSE))
 sink()
 # Bud QTL effect
 sink('qtl_effect_bud_qtlmap_step1_C02.txt')
-qtl <- makeqtl(sug, chr="C02", pos=59.90748, what="prob")
+qtl <- makeqtl(sug, chr="C02", pos=1, what="prob")
 out.fq <- fitqtl(sug, qtl=qtl, method="hk", pheno.col=6)
 summary(fitqtl(sug,  pheno.col=6, qtl=qtl, method="hk", get.ests=TRUE, dropone=FALSE))
 sink()
@@ -1127,57 +1053,11 @@ sink()
 ################################
 # Visualising the QTL on C02   #
 ################################
-# https://cran.r-project.org/web/packages/LinkageMapView/vignettes/LinkageMapView.html
 # Highlight single locus on linkage group
 outfile = file.path(tempdir(), "hyper_showonly.pdf")
 lmv.linkage.plot(hyper,outfile,mapthese=c(1,4,6,15),lcol="green",lcex=2,lfont=2,
                  rcol="red",rcex=2,rfont=3,
                  showonly=c("D1Mit123","D4Mit80","D6Mit135","D15Mit156"))
-
-#chrC02_3554486 C02  95.05573 2.526454
-#chrC02_4758469 C02 102.21600 3.885653
-#chrC02_6014987 C02 113.24453 2.759543
-
-
-#Result Flowering time QTL LOD interval
-#lodint(result_hk_new, drop = 1, chr="C02")
-#chr       pos      lod
-#chrC02_3551828  C02  94.08807 2.848786
-#chrC02_4592706  C02 100.79545 4.020138
-#chrC02_11491728 C02 125.98694 2.711323
-
-
-# Genes within the larger QTl region
-#chrC02_contigs_placed_v81_AT1G04870.2_PRMT10_ATPRMT10_ortho1	10706388	10707365
-#chrC02_10574682 chrC02_11444103
-#124.5663771 125.1345844
-
-#chrC02_contigs_placed_v81_AT5G13480.2_FY_ortho1	4010644	4014230
-#chrC02_3837208  chrC02_4590070
-#98.1810039      99.9430977
-
-#chrC02_contigs_placed_v81	AT5G55835.1_MIR156H_ortho1	9832616	9832722
-#chrC02_8689576 chrC02_10295200
-#123.4299626     123.9981698
-
-#chrC02_contigs_placed_v81	AT5G57380.1_VIN3_ortho1	8486063	8487782
-#chrC02_8581614  chrC02_8488301
-#123.1458656     123.1458666
-
-#chrC02_contigs_placed_v81	AT5G58230.1_MSI1_MEE70_ATMSI1_ortho1	7758610	7760654
-#chrC02_7778702  chrC02_7546097
-#122.2935537     122.2935547
-
-#chrC02_contigs_placed_v81	AT5G59560.1_SRR1_ortho1	7053698	7054530
-#chrC02_7052818  chrC02_7049779
-#122.0094547     122.0094557
-
-
-## Genes within smaller QTL region
-#chrC02_contigs_placed_v81_AT5G13480.2_FY_ortho1	4008644	4016230
-# Markers used to approximate gene map position
-#chrC02_3837208  chrC02_4590070
-#98.1810039      99.9430977
 
 # Show QTL
 qtldf <- data.frame(
@@ -1194,7 +1074,7 @@ qtldf <- data.frame(
 qtldf <- rbind(qtldf,
                data.frame(
                  chr = c("C02","C02","C02","C02","C02","C02","C02"),
-                 qtl = c("FY","PRMT10", "MIR156H","VIN3","MSI1","SRR1","QTL"),
+                 qtl = c("Gene1","Gene2", "Gene3","Gene4","Gene5","Gene6","Gene7"),
                  so = c(98.1810039,124.5663771,123.4299626,123.1458656,122.2935537,122.0094547,94.08807),
                  si = c(98.1810039,124.5663771,123.4299626,123.1458656,122.2935537,122.0094547,94.08807),
                  ei = c(99.9430977,125.1345844,123.9981698,123.1458666,122.2935547,122.0094557,125.98694),
@@ -1203,7 +1083,7 @@ qtldf <- rbind(qtldf,
                ))
 # make a list to pass label options
 flist <- list()
-locus <- c("chrC02_4592706", "chrC02_4758469")
+locus <- c("chrC02_4324", "chrC02_45329")
 font  <- c(2)   #bold
 flist[[1]] <- list(locus = locus, font = font)
 locus <- c("F3H", "FLS1")
@@ -1219,7 +1099,7 @@ outfile = "finalmap_f2_QTL_candidate_gene_on_C02.pdf"
 lmv.linkage.plot(
   finalmap_f2,
   mapthese=c("C02"),
-  showonly = c("chrC02_4592706", "chrC02_4758469"),
+  showonly = c("chrC02_214513", "chrC02_315123"),
   outfile = outfile,
   ruler = TRUE,
   lgtitle = c("C02"),
