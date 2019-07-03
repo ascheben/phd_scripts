@@ -6,6 +6,8 @@ import bx.align.lav
 from collections import defaultdict
 from Bio import SeqIO
 from Bio.Seq import Seq
+
+# Author Philipp Bayer (UWA)
 """ Iterates over lav-alignment, prints for each contig highest scoring alignment """
 
 if len(sys.argv) != 3:
