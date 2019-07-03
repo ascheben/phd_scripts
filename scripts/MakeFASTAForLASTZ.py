@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# Author: Philipp Bayer (UWA)
 
 """ This script parses a tab-delimited (-m 8) BLASTn-output file and assigns the best hit (chromosome) to each query. 
 It then checks the best two hits for each query and discards the query if the hits are too similar (+/- 1%) by writing the query
